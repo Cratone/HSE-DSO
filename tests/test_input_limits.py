@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.models import IngredientCreate, RecipeCreate, RecipeIngredientCreate, RecipeUpdate
+from app import models
 
 
 class TestRecipeTitleLimits:
@@ -12,7 +12,7 @@ class TestRecipeTitleLimits:
     def test_title_min_length(self):
         """Test that empty title is rejected."""
         with pytest.raises(ValidationError) as exc_info:
-            RecipeCreate(
+            models.RecipeCreate(
                 title="",
                 steps="Some steps",
                 ingredients=[],
@@ -24,7 +24,7 @@ class TestRecipeTitleLimits:
     def test_title_max_length_accepted(self):
         """Test that title at max length (200) is accepted."""
         title = "A" * 200
-        recipe = RecipeCreate(
+        recipe = models.RecipeCreate(
             title=title,
             steps="Some steps",
             ingredients=[],
@@ -35,7 +35,7 @@ class TestRecipeTitleLimits:
         """Test that title over max length is rejected."""
         title = "A" * 201
         with pytest.raises(ValidationError) as exc_info:
-            RecipeCreate(
+            models.RecipeCreate(
                 title=title,
                 steps="Some steps",
                 ingredients=[],
@@ -52,7 +52,7 @@ class TestRecipeStepsLimits:
     def test_steps_min_length(self):
         """Test that empty steps are rejected."""
         with pytest.raises(ValidationError):
-            RecipeCreate(
+            models.RecipeCreate(
                 title="Test Recipe",
                 steps="",
                 ingredients=[],
@@ -63,7 +63,7 @@ class TestRecipeStepsLimits:
         # Create exactly 10000 chars
         steps = "A" * 10000
 
-        recipe = RecipeCreate(
+        recipe = models.RecipeCreate(
             title="Long Recipe",
             steps=steps,
             ingredients=[],
@@ -75,7 +75,7 @@ class TestRecipeStepsLimits:
         steps = "A" * 10001
 
         with pytest.raises(ValidationError) as exc_info:
-            RecipeCreate(
+            models.RecipeCreate(
                 title="Test Recipe",
                 steps=steps,
                 ingredients=[],
@@ -92,11 +92,11 @@ class TestMaxIngredientsLimit:
     def test_max_ingredients_accepted(self):
         """Test that 100 ingredients (max) are accepted."""
         ingredients = [
-            RecipeIngredientCreate(ingredient_id=i, amount=10.0, unit="g")
+            models.RecipeIngredientCreate(ingredient_id=i, amount=10.0, unit="g")
             for i in range(1, 101)
         ]
 
-        recipe = RecipeCreate(
+        recipe = models.RecipeCreate(
             title="Recipe with 100 ingredients",
             steps="Mix everything",
             ingredients=ingredients,
@@ -106,12 +106,12 @@ class TestMaxIngredientsLimit:
     def test_over_max_ingredients_rejected(self):
         """Test that more than 100 ingredients are rejected."""
         ingredients = [
-            RecipeIngredientCreate(ingredient_id=i, amount=10.0, unit="g")
+            models.RecipeIngredientCreate(ingredient_id=i, amount=10.0, unit="g")
             for i in range(1, 102)
         ]
 
         with pytest.raises(ValidationError) as exc_info:
-            RecipeCreate(
+            models.RecipeCreate(
                 title="Recipe with 101 ingredients",
                 steps="Mix everything",
                 ingredients=ingredients,
@@ -128,12 +128,12 @@ class TestIngredientNameLimits:
     def test_ingredient_name_min_length(self):
         """Test that empty ingredient name is rejected."""
         with pytest.raises(ValidationError):
-            IngredientCreate(name="")
+            models.IngredientCreate(name="")
 
     def test_ingredient_name_max_length_accepted(self):
         """Test that ingredient name at max length (100) is accepted."""
         name = "A" * 100
-        ingredient = IngredientCreate(name=name)
+        ingredient = models.IngredientCreate(name=name)
         assert len(ingredient.name) == 100
 
     def test_ingredient_name_over_max_length_rejected(self):
@@ -141,7 +141,7 @@ class TestIngredientNameLimits:
         name = "A" * 101
 
         with pytest.raises(ValidationError) as exc_info:
-            IngredientCreate(name=name)
+            models.IngredientCreate(name=name)
 
         error = exc_info.value.errors()[0]
         assert error["loc"] == ("name",)
@@ -154,22 +154,22 @@ class TestRecipeUpdateLimits:
     def test_update_title_over_max_rejected(self):
         """Test that updating title to over max length is rejected."""
         with pytest.raises(ValidationError):
-            RecipeUpdate(title="A" * 201)
+            models.RecipeUpdate(title="A" * 201)
 
     def test_update_steps_over_max_rejected(self):
         """Test that updating steps to over max length is rejected."""
         with pytest.raises(ValidationError):
-            RecipeUpdate(steps="A" * 10001)
+            models.RecipeUpdate(steps="A" * 10001)
 
     def test_update_ingredients_over_max_rejected(self):
         """Test that updating to over 100 ingredients is rejected."""
         ingredients = [
-            RecipeIngredientCreate(ingredient_id=i, amount=10.0, unit="g")
+            models.RecipeIngredientCreate(ingredient_id=i, amount=10.0, unit="g")
             for i in range(1, 102)
         ]
 
         with pytest.raises(ValidationError):
-            RecipeUpdate(ingredients=ingredients)
+            models.RecipeUpdate(ingredients=ingredients)
 
 
 class TestUnitFieldLimit:
@@ -178,13 +178,13 @@ class TestUnitFieldLimit:
     def test_unit_max_length(self):
         """Test that unit has max_length=10."""
         # Valid short unit
-        valid = RecipeIngredientCreate(ingredient_id=1, amount=10.0, unit="g")
+        valid = models.RecipeIngredientCreate(ingredient_id=1, amount=10.0, unit="g")
         assert valid.unit == "g"
 
         # 10 chars should work (though not in ALLOWED_UNITS)
         # This will fail on unit validation, not length
         with pytest.raises(ValidationError) as exc_info:
-            RecipeIngredientCreate(ingredient_id=1, amount=10.0, unit="A" * 10)
+            models.RecipeIngredientCreate(ingredient_id=1, amount=10.0, unit="A" * 10)
 
         # But the error should be about allowed units, not length
         error = exc_info.value.errors()[0]
@@ -192,7 +192,7 @@ class TestUnitFieldLimit:
 
         # 11 chars should fail on length
         with pytest.raises(ValidationError) as exc_info:
-            RecipeIngredientCreate(ingredient_id=1, amount=10.0, unit="A" * 11)
+            models.RecipeIngredientCreate(ingredient_id=1, amount=10.0, unit="A" * 11)
 
         errors = exc_info.value.errors()
         # Should have length error

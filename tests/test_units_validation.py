@@ -1,5 +1,7 @@
 """Tests for ingredient unit validation (ADR-002)."""
 
+from decimal import Decimal
+
 import pytest
 from pydantic import ValidationError
 
@@ -94,7 +96,7 @@ def test_amount_max_value():
     """Test that amount has reasonable maximum."""
     # Just under limit should work
     valid = RecipeIngredientCreate(ingredient_id=1, amount=999999.99, unit="g")
-    assert valid.amount == 999999.99
+    assert valid.amount == Decimal("999999.99")
 
     # Over limit should fail
     with pytest.raises(ValidationError):
