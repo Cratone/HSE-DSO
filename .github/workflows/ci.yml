@@ -36,3 +36,36 @@ jobs:
 
       - name: Pre-commit (all files)
         run: pre-commit run --all-files
+
+      - name: Build runtime image
+        run: docker build --target runtime -t recipe-box-ci .
+
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: Trivy scan (filesystem)
+        id: trivy
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.22.0
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
+          format: "table"
+          exit-code: "1"
+          output: "trivy-fs.txt"
+
+      - name: Upload Trivy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-fs-report
+          path: trivy-fs.txt
+
+      - name: Fail if Trivy detected vulnerabilities
+        if: steps.trivy.outcome == 'failure'
+        run: |
+          echo "Trivy reported HIGH/CRITICAL vulnerabilities"
+          exit 1
