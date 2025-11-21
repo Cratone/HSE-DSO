@@ -35,6 +35,11 @@ docker compose up --build
 - `compose.yaml` поднимает API и Redis, включает healthchecks и автоматический рестарт.
 - Контейнер приложения запускается под non-root (UID 10001), rootfs read-only, `tmpfs` смонтирован только для `/tmp`, все Linux capabilities сброшены, `no-new-privileges` включён.
 
+### Профили безопасности
+
+- **Seccomp:** по умолчанию контейнер получает профиль `docker/security/seccomp/recipe-box-default.json`, который запрещает `clone3`, `bpf`, `io_uring_*`, операции монтирования и другие опсные syscalls. Можно указать альтернативный путь: `export APP_SECCOMP_PROFILE=/full/path/to/profile.json` (Linux/macOS) или `set APP_SECCOMP_PROFILE=unconfined` (cmd) / `$env:APP_SECCOMP_PROFILE="unconfined"` (PowerShell).
+- **AppArmor:** Docker Desktop/WSL автоматически применяет `docker-default`. Для усиленного режима загрузите профиль `docker/security/apparmor/recipe-box.profile` на Linux-хосте: `sudo apparmor_parser -r docker/security/apparmor/recipe-box.profile`, затем `export APP_APPARMOR_PROFILE=recipe-box`. Если AppArmor недоступен, нужно установить `APP_APPARMOR_PROFILE=unconfined` или `$env:APP_APPARMOR_PROFILE="unconfined"`.
+
 ## Запуск
 ```bash
 uvicorn app.main:app --reload

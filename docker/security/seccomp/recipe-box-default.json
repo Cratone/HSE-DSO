@@ -1,0 +1,128 @@
+{
+  "comment": "Recipe Box API hardened seccomp profile: deny kernel attack surface not needed by uvicorn + Redis client",
+  "defaultAction": "SCMP_ACT_ALLOW",
+  "archMap": [
+    {
+      "architecture": "SCMP_ARCH_X86_64",
+      "subArchitectures": [
+        "SCMP_ARCH_X86",
+        "SCMP_ARCH_X32"
+      ]
+    },
+    {
+      "architecture": "SCMP_ARCH_AARCH64",
+      "subArchitectures": [
+        "SCMP_ARCH_ARM"
+      ]
+    },
+    {
+      "architecture": "SCMP_ARCH_RISCV64",
+      "subArchitectures": []
+    }
+  ],
+  "syscalls": [
+    {
+      "names": [
+        "add_key",
+        "keyctl",
+        "request_key"
+      ],
+      "action": "SCMP_ACT_KILL_PROCESS"
+    },
+    {
+      "names": [
+        "bpf",
+        "userfaultfd",
+        "perf_event_open"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    },
+    {
+      "names": [
+        "clone3",
+        "unshare",
+        "setns"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    },
+    {
+      "names": [
+        "mount",
+        "umount",
+        "umount2",
+        "pivot_root",
+        "move_mount",
+        "fsopen",
+        "fsconfig",
+        "fsmount",
+        "fspick",
+        "open_tree",
+        "mount_setattr",
+        "chroot"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    },
+    {
+      "names": [
+        "kexec_load",
+        "kexec_file_load",
+        "init_module",
+        "finit_module",
+        "delete_module"
+      ],
+      "action": "SCMP_ACT_KILL_PROCESS"
+    },
+    {
+      "names": [
+        "ptrace",
+        "process_vm_readv",
+        "process_vm_writev"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    },
+    {
+      "names": [
+        "io_uring_setup",
+        "io_uring_enter",
+        "io_uring_register"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    },
+    {
+      "names": [
+        "swapon",
+        "swapoff",
+        "syslog",
+        "acct",
+        "reboot"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    },
+    {
+      "names": [
+        "socket"
+      ],
+      "action": "SCMP_ACT_ERRNO",
+      "args": [
+        {
+          "index": 0,
+          "value": 17,
+          "op": "SCMP_CMP_EQ"
+        }
+      ]
+    },
+    {
+      "names": [
+        "socket"
+      ],
+      "action": "SCMP_ACT_ERRNO",
+      "args": [
+        {
+          "index": 0,
+          "value": 16,
+          "op": "SCMP_CMP_EQ"
+        }
+      ]
+    }
+  ]
+}

@@ -20,9 +20,7 @@ ENV TEST_VENV=/opt/testenv
 COPY requirements.txt requirements-dev.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
 	"${RUNTIME_VENV}/bin/pip" install --upgrade pip && \
-	"${RUNTIME_VENV}/bin/pip" install -r requirements.txt
-
-RUN --mount=type=cache,target=/root/.cache/pip \
+	"${RUNTIME_VENV}/bin/pip" install -r requirements.txt && \
 	"${TEST_VENV}/bin/pip" install --upgrade pip && \
 	"${TEST_VENV}/bin/pip" install -r requirements.txt -r requirements-dev.txt
 
@@ -32,10 +30,9 @@ COPY tests ./tests
 COPY pyproject.toml ./
 
 # Run the full unit test suite before producing the runtime image.
-ENV PATH="${TEST_VENV}/bin:$PATH"
-RUN pytest -q
+RUN PATH="${TEST_VENV}/bin:$PATH" pytest -q && \
+	rm -rf "${TEST_VENV}"
 ENV PATH="${RUNTIME_VENV}/bin:$PATH"
-RUN rm -rf "${TEST_VENV}"
 
 ###############################################
 # Runtime image: minimal surface, hardened FS.

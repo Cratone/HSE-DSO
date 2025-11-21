@@ -44,7 +44,7 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-          failure-threshold: warning
+          config: .hadolint.yaml
 
       - name: Trivy scan (filesystem)
         id: trivy
@@ -52,11 +52,10 @@ jobs:
         uses: aquasecurity/trivy-action@0.22.0
         with:
           scan-type: "fs"
-          ignore-unfixed: true
-          severity: "CRITICAL,HIGH"
           format: "table"
           exit-code: "1"
           output: "trivy-fs.txt"
+          trivyignores: ".trivyignore"
 
       - name: Upload Trivy report
         if: always()
