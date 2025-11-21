@@ -1,8 +1,35 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: runtime
+    image: recipe-box-app:latest
+    environment:
+      SESSION_BACKEND: redis
+      REDIS_URL: redis://redis:6379/0
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      redis:
+        condition: service_healthy
     ports:
       - "8000:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
-    profiles: ["dev"]
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:${APP_SECCOMP_PROFILE:-./docker/security/seccomp/recipe-box-default.json}
+      - apparmor:${APP_APPARMOR_PROFILE:-docker-default}
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    command: redis-server --save "" --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped

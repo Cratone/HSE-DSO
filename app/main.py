@@ -25,6 +25,11 @@ from app.models import (
     UserPublic,
     UserRegister,
 )
+from app.session_backend import (
+    InMemorySessionBackend,
+    SessionBackend,
+    create_session_backend_from_env,
+)
 
 app = FastAPI(title="Recipe Box API", version="0.3.0")
 
@@ -71,7 +76,7 @@ def generate_token() -> str:
 class InMemoryRecipeStore:
     """Simple in-memory storage to support the MVP use-case."""
 
-    def __init__(self) -> None:
+    def __init__(self, session_backend: SessionBackend | None = None) -> None:
         self._ingredients: dict[int, Ingredient] = {}
         self._ingredients_by_name: dict[str, int] = {}
         self._recipes: dict[int, Recipe] = {}
@@ -79,8 +84,8 @@ class InMemoryRecipeStore:
         self._recipe_seq = count(start=1)
         self._users: dict[int, dict[str, str]] = {}
         self._users_by_email: dict[str, int] = {}
-        self._sessions: dict[str, int] = {}
         self._user_seq = count(start=1)
+        self._session_backend = session_backend or InMemorySessionBackend()
 
     @staticmethod
     def _normalize_name(name: str) -> str:
@@ -126,8 +131,8 @@ class InMemoryRecipeStore:
         self._recipe_seq = count(start=1)
         self._users.clear()
         self._users_by_email.clear()
-        self._sessions.clear()
         self._user_seq = count(start=1)
+        self._session_backend.reset()
 
     def create_user(self, payload: UserRegister) -> UserPublic:
         email = self._normalize_email(payload.email)
@@ -160,11 +165,11 @@ class InMemoryRecipeStore:
             )
 
         token = generate_token()
-        self._sessions[token] = user_id
+        self._session_backend.store_token(token, user_id)
         return token
 
     def get_user_by_token(self, token: str) -> UserPublic:
-        user_id = self._sessions.get(token)
+        user_id = self._session_backend.resolve_token(token)
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -262,7 +267,8 @@ class InMemoryRecipeStore:
         return RecipeIngredient(**ingredient.model_dump())
 
 
-STORE = InMemoryRecipeStore()
+SESSION_BACKEND = create_session_backend_from_env()
+STORE = InMemoryRecipeStore(session_backend=SESSION_BACKEND)
 
 
 def get_current_user(

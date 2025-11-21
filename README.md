@@ -1,39 +1,69 @@
-# <Project Name>
+# Recipe Box API
 
-Менеджер рецептов с ингредиентами.
-
-## Содержание
-- [](#)
-  - [Содержание](#содержание)
-  - [Требования окружения](#требования-окружения)
-  - [Установка и запуск](#установка-и-запуск)
-  - [Конфигурация](#конфигурация)
-  - [Тесты и качество](#тесты-и-качество)
-  - [API (если применимо)](#api-если-применимо)
-  - [Архитектура](#архитектура)
-  - [Безопасность](#безопасность)
-  - [Отладка CI](#отладка-ci)
-  - [Лицензия](#лицензия)
+Менеджер рецептов с ингредиентами и безопасными контролями.
 
 ## Требования окружения
-- Python >= 3.10, Git, make (опционально).
+- Python >= 3.11
+- Poetry/pip + virtualenv (рекомендуется)
+- Установленный `uvicorn` для локального запуска
 
-## Установка и запуск
+## Установка
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-pre-commit install
-pytest -q
-```
-Запуск приложения (если есть):
-```bash
-python -m app
+.venv\Scripts\Activate.ps1  # PowerShell / Windows
+pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ## Конфигурация
-- Переменные среды: `APP_ENV`, `DB_URL` (пример).
-- Секреты не храним в репозитории - используем GitHub Secrets/Environments.
+- Бэкенд сессий по умолчанию — in-memory. Для продакшена используйте Redis: `SESSION_BACKEND=redis`, `REDIS_URL=redis://<host>:6379/0`, `SESSION_TTL_SECONDS`.
+- Зарегистрируйте пользователя через `POST /auth/register`, затем выполните `POST /auth/login` и сохраните `access_token`.
+- Все защищённые эндпоинты ожидают заголовок `Authorization: Bearer <access_token>`.
+
+## Контейнеризация
+```bash
+docker build -t recipe-box:local .
+docker run --rm -p 8000:8000 \
+	-e SESSION_BACKEND=redis -e REDIS_URL=redis://host.docker.internal:6379/0 \
+	recipe-box:local
+```
+
+### Локальный стек через Docker Compose
+```bash
+docker compose up --build
+```
+
+- `compose.yaml` поднимает API и Redis, включает healthchecks и автоматический рестарт.
+- Контейнер приложения запускается под non-root (UID 10001), rootfs read-only, `tmpfs` смонтирован только для `/tmp`, все Linux capabilities сброшены, `no-new-privileges` включён.
+
+### Профили безопасности
+
+- **Seccomp:** по умолчанию контейнер получает профиль `docker/security/seccomp/recipe-box-default.json`, который запрещает `clone3`, `bpf`, `io_uring_*`, операции монтирования и другие опсные syscalls. Можно указать альтернативный путь: `export APP_SECCOMP_PROFILE=/full/path/to/profile.json` (Linux/macOS) или `set APP_SECCOMP_PROFILE=unconfined` (cmd) / `$env:APP_SECCOMP_PROFILE="unconfined"` (PowerShell).
+- **AppArmor:** Docker Desktop/WSL автоматически применяет `docker-default`. Для усиленного режима загрузите профиль `docker/security/apparmor/recipe-box.profile` на Linux-хосте: `sudo apparmor_parser -r docker/security/apparmor/recipe-box.profile`, затем `export APP_APPARMOR_PROFILE=recipe-box`. Если AppArmor недоступен, нужно установить `APP_APPARMOR_PROFILE=unconfined` или `$env:APP_APPARMOR_PROFILE="unconfined"`.
+
+## Запуск
+```bash
+uvicorn app.main:app --reload
+```
+
+Проверка работоспособности: `GET /health` → `{ "status": "ok" }`.
+
+## API
+- `POST /auth/register` — регистрация пользователя (валидация email + пароль ≥8 символов, буквы и цифры).
+- `POST /auth/login` — выдача bearer-токена.
+- `GET /auth/me` — информация о текущем пользователе.
+- `POST /ingredients` — создать ингредиент (имя 1..100 символов, уникальность без учёта регистра).
+- `GET /ingredients` / `GET /ingredients/{id}` — чтение справочника.
+- `POST /recipes` — создать рецепт с шагами и до 100 ингредиентов.
+- `GET /recipes?ingredient=name` — список рецептов владельца, фильтрация по названию ингредиента (case-insensitive).
+- `PATCH /recipes/{id}` — частичное обновление (нельзя отправлять пустое тело).
+- `DELETE /recipes/{id}` — удаление. CRUD открыт только владельцу (owner-id определяется по токену).
+
+Ответы об ошибках стандартизированы в формате RFC 7807 (см. `app/errors.py`).
+
+## Swagger UI
+- Откройте `http://localhost:8000/docs`, зарегистрируйте пользователя и выполните `POST /auth/login` прямо из UI.
+- Скопируйте `access_token`, нажмите **Authorize** (HTTP Bearer) и вставьте токен (без префикса `Bearer`).
+- После авторизации Swagger автоматически добавит заголовок `Authorization` ко всем вызовам.
 
 ## Тесты и качество
 ```bash
@@ -42,23 +72,14 @@ pytest -q
 pre-commit run --all-files
 ```
 
-## API (если применимо)
-- Базовый URL: `/api/v1`
-- Пример: `POST /auth/login` - вход; `GET /items/{id}` - получить сущность.
-- Коды ошибок и формат ответа:
-```json
-{ "code": "VALIDATION_ERROR", "message": "...", "details": {...} }
-```
-
-## Архитектура
-- Слои/модули, зависимости, границы доверия.
+Негативные тесты покрывают отсутствие заголовков авторизации, попытки Path/IDOR, а также валидацию доменных ограничений (см. `tests/test_api_security.py`, `tests/test_recipes_api.py`).
 
 ## Безопасность
-- Валидация ввода, обработка ошибок, отсутствие IDOR, секреты вне кода.
-
-## Отладка CI
-- Смотрите вкладку Actions → последний Failed шаг.
-- Типовые фиксы: `ruff --fix .`, `black .`, `isort .`, `pytest -q`.
+- Строгие Pydantic-модели (Decimal для количеств, `extra='forbid'`, очистка строк).
+- RFC 7807 ответы с `correlation_id` и маскировкой внутренних ошибок.
+- Секреты берутся только из окружения, API-ключ не логируется/не хардкодится.
+- Вся бизнес-логика привязана к владельцу, определяемому по bearer-токену, что предотвращает IDOR.
+- Сессионные токены могут храниться в Redis с TTL, что позволяет горизонтально масштабировать API и быстро инвалидавать токены.
 
 ## Лицензия
 MIT
