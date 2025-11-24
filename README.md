@@ -1,5 +1,7 @@
 # Recipe Box API
 
+[![CI](https://github.com/Cratone/HSE-DSO/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Cratone/HSE-DSO/actions/workflows/ci.yml)
+
 Менеджер рецептов с ингредиентами и безопасными контролями.
 
 ## Требования окружения
