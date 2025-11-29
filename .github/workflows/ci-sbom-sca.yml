@@ -58,36 +58,12 @@ jobs:
             echo "- Generated (UTC): $(date -u '+%Y-%m-%d %H:%M:%SZ')"
             echo
             echo "## Severity counts"
-            jq -r '
-              def sev_weight: {"Critical": 6, "High": 5, "Medium": 4, "Low": 3, "Negligible": 2, "Unknown": 1};
-              [.matches[].vulnerability.severity // "Unknown"]
-              | group_by(.)
-              | map({severity: .[0], count: length})
-              | sort_by(sev_weight[.severity] // 0)
-              | reverse
-              | map("- " + .severity + ": " + (.count|tostring))
-              | .[]?
-            ' "${{ env.SCA_REPORT_PATH }}" | sed 's/^/ /'
+            jq -r 'def sev_weight: {"Critical": 6, "High": 5, "Medium": 4, "Low": 3, "Negligible": 2, "Unknown": 1}; [.matches[].vulnerability.severity // "Unknown"] | group_by(.) | map({severity: .[0], count: length}) | sort_by(sev_weight[.severity] // 0) | reverse | map("- " + .severity + ": " + (.count|tostring)) | .[]?' \
+              "${{ env.SCA_REPORT_PATH }}" | sed 's/^/ /'
             echo
             echo "## Top Critical/High findings"
-            jq -r '
-              def sev_weight: {"Critical": 6, "High": 5};
-              .matches
-              | map({
-                  severity: .vulnerability.severity // "Unknown",
-                  id: .vulnerability.id,
-                  package: .artifact.name,
-                  version: .artifact.version,
-                  fix_state: .vulnerability.fix.state
-                })
-              | map(select(.severity == "Critical" or .severity == "High"))
-              | unique_by(.id + .package + .version)
-              | sort_by(sev_weight[.severity] // 0)
-              | reverse
-              | .[:5]
-              | (if length == 0 then ["- No Critical/High findings detected"] else map("- [" + .severity + "] " + .id + " in " + .package + "@" + .version + " (fix: " + (.fix_state // "unknown") + ")") end)
-              | .[]
-            ' "${{ env.SCA_REPORT_PATH }}" | sed 's/^/ /'
+            jq -r 'def sev_weight: {"Critical": 6, "High": 5}; .matches | map({severity: (.vulnerability.severity // "Unknown"), id: .vulnerability.id, package: .artifact.name, version: .artifact.version, fix_state: .vulnerability.fix.state}) | map(select(.severity == "Critical" or .severity == "High")) | unique_by(.id + .package + .version) | sort_by(sev_weight[.severity] // 0) | reverse | .[:5] | (if length == 0 then ["- No Critical/High findings detected"] else map("- [" + .severity + "] " + .id + " in " + .package + "@" + .version + " (fix: " + (.fix_state // "unknown") + ")") end) | .[]' \
+              "${{ env.SCA_REPORT_PATH }}" | sed 's/^/ /'
           } > "${{ env.SCA_SUMMARY_PATH }}"
 
       - name: Upload SBOM & SCA evidence
