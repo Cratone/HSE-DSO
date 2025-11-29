@@ -76,6 +76,42 @@ pre-commit run --all-files
 
 Негативные тесты покрывают отсутствие заголовков авторизации, попытки Path/IDOR, а также валидацию доменных ограничений (см. `tests/test_api_security.py`, `tests/test_recipes_api.py`).
 
+## SBOM & SCA (Security Supply Chain)
+
+Проект использует автоматизированное сканирование зависимостей через CI workflow:
+
+### Артефакты
+Все артефакты SBOM и SCA хранятся в `EVIDENCE/P09/`:
+- **sbom.json** - Software Bill of Materials в формате CycloneDX, сгенерирован Syft v1.5.0
+- **sca_report.json** - полный отчет сканирования уязвимостей от Grype v0.78.0
+- **sca_summary.md** - человекочитаемая сводка с анализом найденных уязвимостей и планом действий
+
+### CI Workflow
+`.github/workflows/ci-sbom-sca.yml` автоматически:
+- Генерирует SBOM при изменении Python-кода или зависимостей
+- Выполняет SCA-сканирование на основе SBOM
+- Публикует артефакты через GitHub Actions (retention: 14 дней)
+- Использует concurrency control для предотвращения дублирования запусков
+
+### Воспроизведение локально
+```bash
+# Генерация SBOM
+docker run --rm -v $PWD:/work -w /work anchore/syft:v1.5.0 packages dir:. -o cyclonedx-json > EVIDENCE/P09/sbom.json
+
+# SCA сканирование
+docker run --rm -v $PWD:/work -w /work anchore/grype:v0.78.0 sbom:/work/EVIDENCE/P09/sbom.json -o json > EVIDENCE/P09/sca_report.json
+```
+
+### Политика управления уязвимостями
+См. `task/templates/policy/waivers.yml` для оформления обоснованных исключений (waivers) по уязвимостям, которые не могут быть немедленно устранены. Каждый waiver включает:
+- ID уязвимости (CVE/GHSA)
+- Пакет и версию
+- Обоснование (почему риск приемлем)
+- Ссылку на Issue/PR с планом устранения
+- Срок пересмотра и ответственного
+
+Текущее состояние уязвимостей см. в `EVIDENCE/P09/sca_summary.md`.
+
 ## Безопасность
 - Строгие Pydantic-модели (Decimal для количеств, `extra='forbid'`, очистка строк).
 - RFC 7807 ответы с `correlation_id` и маскировкой внутренних ошибок.

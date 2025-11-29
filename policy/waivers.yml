@@ -1,0 +1,41 @@
+# policy/waivers.yml — файл исключений для SBOM & SCA
+# См. project/69_sbom-vuln-mgmt.md для описания политики.
+
+waivers:
+  - id: "GHSA-f96h-pmfr-66vw"
+    related_cve: "CVE-2024-47874"
+    package: "starlette"
+    version: "0.38.6"
+    severity: "High"
+    reason: |
+      DoS через multipart/form-data без размерных ограничений.
+      Временное исключение на период тестирования обновления до starlette 0.47.2+.
+      Приложение в настоящий момент находится на стадии разработки/тестирования
+      и не развернуто в production. Риск DoS минимален в dev-окружении.
+      Планируется комплексное обновление зависимостей FastAPI и starlette.
+
+      Компенсирующие меры:
+      - Доступ к dev-окружению ограничен внутренней сетью
+      - Используются размерные ограничения на HTTP-запросы на уровне reverse proxy (nginx)
+      - Мониторинг потребления памяти приложения
+    issue: "https://github.com/Cratone/HSE-DSO/issues/9"
+    expires_at: "2025-12-31"
+    approved_by: "@aNd1CE"
+    plan: |
+      1. Создать Issue для отслеживания обновления starlette
+      2. Провести тестирование совместимости с starlette 0.47.2+
+      3. Обновить requirements.txt: starlette>=0.47.2
+      4. Провести regression testing всех API endpoints
+      5. Повторно запустить SCA после обновления для верификации
+      Target completion: 2025-12-20
+
+# Пример записи:
+# waivers:
+#   - id: "CVE-2024-XXXX"
+#     package: "example-lib"
+#     version: "1.2.3"
+#     severity: "High"
+#     reason: "Транзитивная зависимость; нет фикса; компонент не в прод-цепочке."
+#     issue: "https://github.com/<org>/<repo>/issues/123"
+#     expires_at: "2025-12-31"
+#     approved_by: "tutor@example.org"
