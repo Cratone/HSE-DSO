@@ -1,0 +1,99 @@
+name: Security - SBOM & SCA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "**/*.py"
+      - "requirements*.txt"
+      - "pyproject.toml"
+      - ".github/workflows/ci-sbom-sca.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sbom_sca:
+    name: SBOM generation & SCA scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EVIDENCE_DIR: EVIDENCE/P09
+      SBOM_PATH: EVIDENCE/P09/sbom.json
+      SCA_REPORT_PATH: EVIDENCE/P09/sca_report.json
+      SCA_SUMMARY_PATH: EVIDENCE/P09/sca_summary.md
+      SYFT_IMAGE: anchore/syft:v1.5.0
+      GRYPE_IMAGE: anchore/grype:v0.78.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure evidence directories
+        run: mkdir -p ${{ env.EVIDENCE_DIR }}
+
+      - name: Generate SBOM (Syft CycloneDX JSON)
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$PWD":/work -w /work ${{ env.SYFT_IMAGE }} \
+            packages dir:. -o cyclonedx-json > "${{ env.SBOM_PATH }}"
+
+      - name: Run SCA (Grype) and build summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$PWD":/work -w /work ${{ env.GRYPE_IMAGE }} \
+            sbom:/work/${{ env.SBOM_PATH }} -o json > "${{ env.SCA_REPORT_PATH }}"
+
+          {
+            echo "# SBOM & SCA summary"
+            echo
+            echo "- Commit: ${{ github.sha }}"
+            echo "- SBOM tool: ${{ env.SYFT_IMAGE }}"
+            echo "- SCA tool: ${{ env.GRYPE_IMAGE }}"
+            echo "- Generated (UTC): $(date -u '+%Y-%m-%d %H:%M:%SZ')"
+            echo
+            echo "## Severity counts"
+            jq -r '
+              def sev_weight: {"Critical": 6, "High": 5, "Medium": 4, "Low": 3, "Negligible": 2, "Unknown": 1};
+              [.matches[].vulnerability.severity // "Unknown"]
+              | group_by(.)
+              | map({severity: .[0], count: length})
+              | sort_by(sev_weight[.severity] // 0)
+              | reverse
+              | map("- " + .severity + ": " + (.count|tostring))
+              | .[]?
+            ' "${{ env.SCA_REPORT_PATH }}" | sed 's/^/ /'
+            echo
+            echo "## Top Critical/High findings"
+            jq -r '
+              def sev_weight: {"Critical": 6, "High": 5};
+              .matches
+              | map({
+                  severity: .vulnerability.severity // "Unknown",
+                  id: .vulnerability.id,
+                  package: .artifact.name,
+                  version: .artifact.version,
+                  fix_state: .vulnerability.fix.state
+                })
+              | map(select(.severity == "Critical" or .severity == "High"))
+              | unique_by(.id + .package + .version)
+              | sort_by(sev_weight[.severity] // 0)
+              | reverse
+              | .[:5]
+              | (if length == 0 then ["- No Critical/High findings detected"] else map("- [" + .severity + "] " + .id + " in " + .package + "@" + .version + " (fix: " + (.fix_state // "unknown") + ")") end)
+              | .[]
+            ' "${{ env.SCA_REPORT_PATH }}" | sed 's/^/ /'
+          } > "${{ env.SCA_SUMMARY_PATH }}"
+
+      - name: Upload SBOM & SCA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p09-sbom-sca-${{ github.run_id }}
+          path: ${{ env.EVIDENCE_DIR }}
+          retention-days: 14
