@@ -1,0 +1,723 @@
+﻿{
+
+ "matches": [
+
+  {
+
+   "vulnerability": {
+
+    "id": "GHSA-f96h-pmfr-66vw",
+
+    "dataSource": "https://github.com/advisories/GHSA-f96h-pmfr-66vw",
+
+    "namespace": "github:language:python",
+
+    "severity": "High",
+
+    "urls": [
+
+     "https://github.com/advisories/GHSA-f96h-pmfr-66vw"
+
+    ],
+
+    "description": "Starlette Denial of service (DoS) via multipart/form-data",
+
+    "cvss": [
+
+     {
+
+      "version": "3.1",
+
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N",
+
+      "metrics": {
+
+       "baseScore": 0,
+
+       "exploitabilityScore": 3.9,
+
+       "impactScore": 0
+
+      },
+
+      "vendorMetadata": {
+
+       "base_severity": "None",
+
+       "status": "N/A"
+
+      }
+
+     }
+
+    ],
+
+    "fix": {
+
+     "versions": [
+
+      "0.40.0"
+
+     ],
+
+     "state": "fixed"
+
+    },
+
+    "advisories": []
+
+   },
+
+   "relatedVulnerabilities": [
+
+    {
+
+     "id": "CVE-2024-47874",
+
+     "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2024-47874",
+
+     "namespace": "nvd:cpe",
+
+     "severity": "High",
+
+     "urls": [
+
+      "https://github.com/encode/starlette/commit/fd038f3070c302bff17ef7d173dbb0b007617733",
+
+      "https://github.com/encode/starlette/security/advisories/GHSA-f96h-pmfr-66vw"
+
+     ],
+
+     "description": "Starlette is an Asynchronous Server Gateway Interface (ASGI) framework/toolkit. Prior to version 0.40.0, Starlette treats `multipart/form-data` parts without a `filename` as text form fields and buffers those in byte strings with no size limit. This allows an attacker to upload arbitrary large form fields and cause Starlette to both slow down significantly due to excessive memory allocations and copy operations, and also consume more and more memory until the server starts swapping and grinds to a halt, or the OS terminates the server process with an OOM error. Uploading multiple such requests in parallel may be enough to render a service practically unusable, even if reasonable request size limits are enforced by a reverse proxy in front of Starlette. This Denial of service (DoS) vulnerability affects all applications built with Starlette (or FastAPI) accepting form requests. Verison 0.40.0 fixes this issue.",
+
+     "cvss": [
+
+      {
+
+       "source": "security-advisories@github.com",
+
+       "type": "Secondary",
+
+       "version": "4.0",
+
+       "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X",
+
+       "metrics": {
+
+        "baseScore": 8.7
+
+       },
+
+       "vendorMetadata": {}
+
+      }
+
+     ]
+
+    }
+
+   ],
+
+   "matchDetails": [
+
+    {
+
+     "type": "exact-direct-match",
+
+     "matcher": "python-matcher",
+
+     "searchedBy": {
+
+      "language": "python",
+
+      "namespace": "github:language:python",
+
+      "package": {
+
+       "name": "starlette",
+
+       "version": "0.38.6"
+
+      }
+
+     },
+
+     "found": {
+
+      "versionConstraint": "<0.40.0 (python)",
+
+      "vulnerabilityID": "GHSA-f96h-pmfr-66vw"
+
+     }
+
+    }
+
+   ],
+
+   "artifact": {
+
+    "id": "f3b47156739cea06",
+
+    "name": "starlette",
+
+    "version": "0.38.6",
+
+    "type": "python",
+
+    "locations": [
+
+     {
+
+      "path": "/.venv/Lib/site-packages/starlette-0.38.6.dist-info/METADATA"
+
+     },
+
+     {
+
+      "path": "/.venv/Lib/site-packages/starlette-0.38.6.dist-info/RECORD"
+
+     }
+
+    ],
+
+    "language": "python",
+
+    "licenses": [
+
+     "BSD-3-Clause"
+
+    ],
+
+    "cpes": [
+
+     "cpe:2.3:a:encode:starlette:0.38.6:*:*:*:*:python:*:*"
+
+    ],
+
+    "purl": "pkg:pypi/starlette@0.38.6",
+
+    "upstreams": []
+
+   }
+
+  },
+
+  {
+
+   "vulnerability": {
+
+    "id": "GHSA-2c2j-9gv5-cj73",
+
+    "dataSource": "https://github.com/advisories/GHSA-2c2j-9gv5-cj73",
+
+    "namespace": "github:language:python",
+
+    "severity": "Medium",
+
+    "urls": [
+
+     "https://github.com/advisories/GHSA-2c2j-9gv5-cj73"
+
+    ],
+
+    "description": "Starlette has possible denial-of-service vector when parsing large files in multipart forms",
+
+    "cvss": [
+
+     {
+
+      "version": "3.1",
+
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+
+      "metrics": {
+
+       "baseScore": 5.3,
+
+       "exploitabilityScore": 3.9,
+
+       "impactScore": 1.4
+
+      },
+
+      "vendorMetadata": {
+
+       "base_severity": "Medium",
+
+       "status": "N/A"
+
+      }
+
+     }
+
+    ],
+
+    "fix": {
+
+     "versions": [
+
+      "0.47.2"
+
+     ],
+
+     "state": "fixed"
+
+    },
+
+    "advisories": []
+
+   },
+
+   "relatedVulnerabilities": [
+
+    {
+
+     "id": "CVE-2025-54121",
+
+     "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2025-54121",
+
+     "namespace": "nvd:cpe",
+
+     "severity": "Medium",
+
+     "urls": [
+
+      "https://github.com/encode/starlette/blob/fa5355442753f794965ae1af0f87f9fec1b9a3de/starlette/datastructures.py#L436C5-L447C14",
+
+      "https://github.com/encode/starlette/commit/9f7ec2eb512fcc3fe90b43cb9dd9e1d08696bec1",
+
+      "https://github.com/encode/starlette/discussions/2927#discussioncomment-13721403",
+
+      "https://github.com/encode/starlette/security/advisories/GHSA-2c2j-9gv5-cj73"
+
+     ],
+
+     "description": "Starlette is a lightweight ASGI (Asynchronous Server Gateway Interface) framework/toolkit, designed for building async web services in Python. In versions 0.47.1 and below, when parsing a multi-part form with large files (greater than the default max spool size) starlette will block the main thread to roll the file over to disk. This blocks the event thread which means the application can't accept new connections. The UploadFile code has a minor bug where instead of just checking for self._in_memory, the logic should also check if the additional bytes will cause a rollover. The vulnerability is fixed in version 0.47.2.",
+
+     "cvss": [
+
+      {
+
+       "source": "security-advisories@github.com",
+
+       "type": "Secondary",
+
+       "version": "3.1",
+
+       "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+
+       "metrics": {
+
+        "baseScore": 5.3,
+
+        "exploitabilityScore": 3.9,
+
+        "impactScore": 1.4
+
+       },
+
+       "vendorMetadata": {}
+
+      }
+
+     ]
+
+    }
+
+   ],
+
+   "matchDetails": [
+
+    {
+
+     "type": "exact-direct-match",
+
+     "matcher": "python-matcher",
+
+     "searchedBy": {
+
+      "language": "python",
+
+      "namespace": "github:language:python",
+
+      "package": {
+
+       "name": "starlette",
+
+       "version": "0.38.6"
+
+      }
+
+     },
+
+     "found": {
+
+      "versionConstraint": "<0.47.2 (python)",
+
+      "vulnerabilityID": "GHSA-2c2j-9gv5-cj73"
+
+     }
+
+    }
+
+   ],
+
+   "artifact": {
+
+    "id": "f3b47156739cea06",
+
+    "name": "starlette",
+
+    "version": "0.38.6",
+
+    "type": "python",
+
+    "locations": [
+
+     {
+
+      "path": "/.venv/Lib/site-packages/starlette-0.38.6.dist-info/METADATA"
+
+     },
+
+     {
+
+      "path": "/.venv/Lib/site-packages/starlette-0.38.6.dist-info/RECORD"
+
+     }
+
+    ],
+
+    "language": "python",
+
+    "licenses": [
+
+     "BSD-3-Clause"
+
+    ],
+
+    "cpes": [
+
+     "cpe:2.3:a:encode:starlette:0.38.6:*:*:*:*:python:*:*"
+
+    ],
+
+    "purl": "pkg:pypi/starlette@0.38.6",
+
+    "upstreams": []
+
+   }
+
+  }
+
+ ],
+
+ "source": {
+
+  "type": "file",
+
+  "target": "."
+
+ },
+
+ "distro": {
+
+  "name": "",
+
+  "version": "",
+
+  "idLike": null
+
+ },
+
+ "descriptor": {
+
+  "name": "grype",
+
+  "version": "0.78.0",
+
+  "configuration": {
+
+   "output": [
+
+    "json"
+
+   ],
+
+   "file": "",
+
+   "distro": "",
+
+   "add-cpes-if-none": false,
+
+   "output-template-file": "",
+
+   "check-for-app-update": true,
+
+   "only-fixed": false,
+
+   "only-notfixed": false,
+
+   "ignore-wontfix": "",
+
+   "platform": "",
+
+   "search": {
+
+    "scope": "squashed",
+
+    "unindexed-archives": false,
+
+    "indexed-archives": true
+
+   },
+
+   "ignore": [
+
+    {
+
+     "vulnerability": "",
+
+     "reason": "",
+
+     "namespace": "",
+
+     "fix-state": "",
+
+     "package": {
+
+      "name": "kernel-headers",
+
+      "version": "",
+
+      "language": "",
+
+      "type": "rpm",
+
+      "location": "",
+
+      "upstream-name": "kernel"
+
+     },
+
+     "vex-status": "",
+
+     "vex-justification": "",
+
+     "match-type": "exact-indirect-match"
+
+    },
+
+    {
+
+     "vulnerability": "",
+
+     "reason": "",
+
+     "namespace": "",
+
+     "fix-state": "",
+
+     "package": {
+
+      "name": "linux-headers-.*",
+
+      "version": "",
+
+      "language": "",
+
+      "type": "deb",
+
+      "location": "",
+
+      "upstream-name": "linux"
+
+     },
+
+     "vex-status": "",
+
+     "vex-justification": "",
+
+     "match-type": "exact-indirect-match"
+
+    },
+
+    {
+
+     "vulnerability": "",
+
+     "reason": "",
+
+     "namespace": "",
+
+     "fix-state": "",
+
+     "package": {
+
+      "name": "linux-libc-dev",
+
+      "version": "",
+
+      "language": "",
+
+      "type": "deb",
+
+      "location": "",
+
+      "upstream-name": "linux"
+
+     },
+
+     "vex-status": "",
+
+     "vex-justification": "",
+
+     "match-type": "exact-indirect-match"
+
+    }
+
+   ],
+
+   "exclude": [],
+
+   "db": {
+
+    "cache-dir": "/.cache/grype/db",
+
+    "update-url": "https://toolbox-data.anchore.io/grype/databases/listing.json",
+
+    "ca-cert": "",
+
+    "auto-update": true,
+
+    "validate-by-hash-on-start": false,
+
+    "validate-age": true,
+
+    "max-allowed-built-age": 432000000000000,
+
+    "update-available-timeout": 30000000000,
+
+    "update-download-timeout": 120000000000
+
+   },
+
+   "externalSources": {
+
+    "enable": false,
+
+    "maven": {
+
+     "searchUpstreamBySha1": true,
+
+     "baseUrl": "https://search.maven.org/solrsearch/select"
+
+    }
+
+   },
+
+   "match": {
+
+    "java": {
+
+     "using-cpes": false
+
+    },
+
+    "dotnet": {
+
+     "using-cpes": false
+
+    },
+
+    "golang": {
+
+     "using-cpes": false,
+
+     "always-use-cpe-for-stdlib": true,
+
+     "allow-main-module-pseudo-version-comparison": true
+
+    },
+
+    "javascript": {
+
+     "using-cpes": false
+
+    },
+
+    "python": {
+
+     "using-cpes": false
+
+    },
+
+    "ruby": {
+
+     "using-cpes": false
+
+    },
+
+    "rust": {
+
+     "using-cpes": false
+
+    },
+
+    "stock": {
+
+     "using-cpes": true
+
+    }
+
+   },
+
+   "fail-on-severity": "",
+
+   "registry": {
+
+    "insecure-skip-tls-verify": false,
+
+    "insecure-use-http": false,
+
+    "auth": null,
+
+    "ca-cert": ""
+
+   },
+
+   "show-suppressed": false,
+
+   "by-cve": false,
+
+   "name": "",
+
+   "default-image-pull-source": "",
+
+   "vex-documents": [],
+
+   "vex-add": [],
+
+   "match-upstream-kernel-headers": false
+
+  },
+
+  "db": {
+
+   "built": "2025-11-27T00:25:44Z",
+
+   "schemaVersion": 5,
+
+   "location": "/.cache/grype/db/5",
+
+   "checksum": "sha256:d58af86de29a31494167963bd87d5c8b6ebed0834c52530006fb73cdba25b5c2",
+
+   "error": null
+
+  },
+
+  "timestamp": "2025-11-28T17:44:58.046194426Z"
+
+ }
+
+}
