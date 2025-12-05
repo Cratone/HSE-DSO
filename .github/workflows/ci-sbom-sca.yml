@@ -26,11 +26,11 @@ jobs:
       SBOM_PATH: EVIDENCE/P09/sbom.json
       SCA_REPORT_PATH: EVIDENCE/P09/sca_report.json
       SCA_SUMMARY_PATH: EVIDENCE/P09/sca_summary.md
-      SYFT_IMAGE: anchore/syft:v1.5.0
-      GRYPE_IMAGE: anchore/grype:v0.78.0
+      SYFT_IMAGE: anchore/syft:v1.38.0
+      GRYPE_IMAGE: anchore/grype:v0.104.1
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Ensure evidence directories
         run: mkdir -p ${{ env.EVIDENCE_DIR }}
@@ -68,7 +68,7 @@ jobs:
 
       - name: Upload SBOM & SCA evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: p09-sbom-sca-${{ github.run_id }}
           path: ${{ env.EVIDENCE_DIR }}
