@@ -1,0 +1,20 @@
+title = "recipe-box gitleaks config"
+
+timestamp = "2025-12-07T00:00:00Z"
+
+[extend]
+# Use built-in community rules
+
+[allowlist]
+description = "Ignore safe evidence artifacts and known test credentials"
+paths = [
+  "EVIDENCE/",
+]
+regexes = [
+  # Test passwords used only in unit tests
+  '''Str0ngPass123''',
+  '''DupPass123''',
+  '''Secure123''',
+  '''WrongPass123''',
+  '''WeakPass123''',
+]
