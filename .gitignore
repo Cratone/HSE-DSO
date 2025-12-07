@@ -9,6 +9,8 @@ build/
 .env
 .pytest_cache/
 .coverage
+# Security tooling
+gitleaks-bin/
 # IDE
 .vscode/
 .idea/
