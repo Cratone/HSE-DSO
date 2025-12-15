@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import hmac
+import logging
 import secrets
 from itertools import count
 from typing import List
@@ -30,6 +31,8 @@ from app.session_backend import (
     SessionBackend,
     create_session_backend_from_env,
 )
+
+logger = logging.getLogger("recipebox.api")
 
 app = FastAPI(title="Recipe Box API", version="0.3.0")
 
@@ -334,9 +337,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors with RFC 7807 format (masked details)."""
-    import traceback
-
-    traceback.print_exc()
+    logger.exception(
+        "Unhandled exception when processing %s %s", request.method, request.url.path
+    )
 
     return problem(
         status=500,

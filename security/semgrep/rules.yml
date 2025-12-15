@@ -1,0 +1,28 @@
+rules:
+  - id: recipebox-avoid-traceback-print
+    message: "Use structured logging instead of printing raw tracebacks in handlers"
+    metadata:
+      category: security
+      cwe: "CWE-209: Information Exposure Through an Error Message"
+      references:
+        - https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures
+    severity: WARNING
+    languages: [python]
+    pattern: |
+      traceback.print_exc(...)
+
+  - id: recipebox-pbkdf2-iteration-policy
+    message: "PBKDF2 iteration count must stay >= 120000 for password hashing"
+    metadata:
+      category: security
+      cwe: "CWE-916: Use of Password Hash With Insufficient Computational Effort"
+      references:
+        - https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+    severity: ERROR
+    languages: [python]
+    patterns:
+      - pattern: |
+          PASSWORD_ITERATIONS = $ITER
+      - metavariable-comparison:
+          metavariable: ITER
+          comparison: "$ITER < 120000"
