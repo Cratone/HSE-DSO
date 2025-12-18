@@ -1,0 +1,17 @@
+# Project-specific Hadolint configuration aligned with Recipe Box build.
+failure-threshold: warning
+
+ignored:
+  # pip uses requirements files with hashes, so these are noisy for us.
+  - DL3013
+  - DL3042
+
+trustedRegistries:
+  - ghcr.io
+  - docker.io
+
+override:
+  warning:
+    # Ensure we never miss COPY vs ADD mismatches and pin shell usage.
+    - DL3020
+    - DL4006

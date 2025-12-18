@@ -45,16 +45,19 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 ARG APP_UID=10001
 ARG APP_GID=10001
-WORKDIR /app
+ENV APP_HOME=/app
+WORKDIR ${APP_HOME}
 
 RUN set -eux; \
 	groupadd --system --gid "$APP_GID" recipe && \
 	useradd --system --no-create-home --uid "$APP_UID" --gid "$APP_GID" recipe
 
-COPY --from=builder /opt/venv /opt/venv
-COPY app ./app
+COPY --from=builder --chown=recipe:recipe /opt/venv /opt/venv
+COPY --chown=recipe:recipe app ./app
 
 EXPOSE 8000
+
+STOPSIGNAL SIGTERM
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD \
 	["python", "-c", "import sys,urllib.request,urllib.error;\ntry:\n    urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)\nexcept Exception:\n    sys.exit(1)"]

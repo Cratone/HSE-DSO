@@ -1,0 +1,19 @@
+# Hardened Trivy configuration focused on critical/high findings.
+
+scan:
+  scanners:
+    - vuln
+    - misconfig
+
+# JSON keeps artifact ingestion simple.
+format: "json"
+vulnerability:
+  severities:
+    - CRITICAL
+    - HIGH
+  ignore-unfixed: true
+  types:
+    - os
+    - library
+misconfig:
+  include-non-failures: false

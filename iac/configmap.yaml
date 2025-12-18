@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: recipe-box-config
+  namespace: recipe-box
+  labels:
+    app.kubernetes.io/name: recipe-box
+    app.kubernetes.io/component: config
+data:
+  SESSION_BACKEND: redis
+  REDIS_URL: redis://recipe-box-redis:6379/0
+  UVICORN_HOST: 0.0.0.0

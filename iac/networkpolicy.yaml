@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: recipe-box-only-namespace
+  namespace: recipe-box
+  labels:
+    app.kubernetes.io/name: recipe-box
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    egress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: recipe-box
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: recipe-box
+        ports:
+          - port: 6379
+            protocol: TCP
+          - port: 53
+            protocol: UDP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+        ports:
+          - port: 53
+            protocol: UDP
+            kubernetes.io/metadata.name: kube-system
+    ports:
+      - port: 53
+        protocol: UDP
